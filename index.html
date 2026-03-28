@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<!-- 🔥 IMPORTANT FOR MOBILE -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>For You ❤️</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+    overflow: hidden;
+    text-align: center;
+    color: #fff;
+    padding: 20px;
+}
+
+/* Container */
+.container {
+    max-width: 500px;
+    margin: auto;
+}
+
+/* Title */
+h1 {
+    margin-top: 60px;
+    font-size: 2.2rem;
+    animation: fadeIn 2s ease-in-out;
+}
+
+/* Text */
+p {
+    font-size: 1.1rem;
+    margin: 15px;
+    animation: fadeIn 3s ease-in-out;
+}
+
+/* Button */
+button {
+    padding: 14px 24px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 30px;
+    background: white;
+    color: #ff6b81;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+/* Floating hearts */
+.heart {
+    position: absolute;
+    color: rgba(255,255,255,0.7);
+    font-size: 18px;
+    animation: float 6s linear infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(100vh); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(-10vh); opacity: 0; }
+}
+
+/* Fade */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* 💖 BIG HEART (RESPONSIVE) */
+.big-heart {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 40vw; /* 🔥 responsive size */
+    text-align: center;
+    animation: popHeart 0.8s ease forwards;
+    z-index: 10;
+}
+
+/* Text inside heart */
+.heart-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4vw;
+    width: 70%;
+    max-width: 260px;
+    color: white;
+    line-height: 1.4;
+}
+
+/* Animation */
+@keyframes popHeart {
+    0% { transform: translate(-50%, -50%) scale(0); }
+    70% { transform: translate(-50%, -50%) scale(1.2); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* 📱 Extra small devices */
+@media (max-width: 400px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+    p {
+        font-size: 1rem;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Hey Tanu 💖</h1>
+
+<p>
+I know you're not feeling great right now...<br>
+But I just want you to know,<br>
+You're strong, amazing, and I'm here for you 🌸
+</p>
+
+<button id="surpriseBtn" onclick="showMessage()">Click for a Surprise 💌</button>
+
+</div>
+
+<script>
+
+// 💖 SHOW HEART
+function showMessage() {
+
+    document.getElementById("surpriseBtn").style.display = "none";
+
+    const heart = document.createElement("div");
+    heart.classList.add("big-heart");
+
+    heart.innerHTML = `
+        💖
+        <div class="heart-text">
+            You deserve all the comfort,<br>
+            warmth, and love ❤️<br><br>
+            Take rest... I'm always here 😊
+        </div>
+    `;
+
+    document.body.appendChild(heart);
+}
+
+
+// 💖 FLOATING HEARTS
+function createHeart() {
+    const heart = document.createElement("div");
+    heart.classList.add("heart");
+    heart.innerHTML = "💖";
+    heart.style.left = Math.random() * 100 + "vw";
+    heart.style.animationDuration = (Math.random() * 3 + 3) + "s";
+    document.body.appendChild(heart);
+
+    setTimeout(() => heart.remove(), 6000);
+}
+
+setInterval(createHeart, 300);
+
+</script>
+
+</body>
+</html>
