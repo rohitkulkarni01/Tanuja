@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Cozy Care Package for Tanuja</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React and ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel Standalone to compile JSX in browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Google Fonts: Quicksand & Pacifico -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #fffaf7;
+    }
+    .font-pacifico {
+      font-family: 'Pacifico', cursive;
+    }
+    /* Custom subtle keyframe animations */
+    @keyframes floatPetal {
+      0% { transform: translateY(-10px) rotate(0deg); opacity: 0; }
+      20% { opacity: 0.8; }
+      80% { opacity: 0.6; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+    @keyframes pulseSoft {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    .animate-pulse-soft {
+      animation: pulseSoft 3.5s ease-in-out infinite;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #fff0f3;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #fbcfe8;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #f472b6;
+    }
+  </style>
+</head>
+<body class="selection:bg-pink-200 selection:text-pink-800">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Web Audio Synthesizer for soft, soothing, zero-dependency sounds
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playBubblePop() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const freq = 450 + Math.random() * 260;
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(freq * 1.8, this.ctx.currentTime + 0.08);
+
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.08);
+        } catch (e) {}
+      }
+      playWarmChime() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const notes = [261.63, 329.63, 392.00, 523.25]; // C chord
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+
+            gain.gain.setValueAtTime(0.08, this.ctx.currentTime + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + idx * 0.08 + 1.2);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(this.ctx.currentTime + idx * 0.08);
+            osc.stop(this.ctx.currentTime + idx * 0.08 + 1.2);
+          });
+        } catch (e) {}
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    // Data Collections
+    const AFFIRMATIONS = [
+      "Your body is doing sacred, powerful work right now. Give yourself total permission to rest, Tanuja.",
+      "Cramps are temporary, but your quiet resilience and beauty are timeless.",
+      "You don't need to be productive today. Just staying warm and cozy is 100% enough.",
+      "Whatever emotions come up today—tears, anger, or sudden giggles—they are all safe and valid.",
+      "You are deeply loved, cared for, and cherished, especially on the toughest aching days.",
+      "Wrap yourself like a warm burrito. The world can wait outside your blanket fort.",
+      "You are stronger than this ache, but remember you don’t have to act tough right now.",
+      "Sending you infinite hugs, gentle tummy rubs, and all your favorite sweet treats."
+    ];
+
+    const TEAS = [
+      {
+        id: 'chamomile',
+        name: 'Honey Chamomile Elixir',
+        tagline: 'Deep Muscle Relaxer',
+        benefit: 'Rich in glycine, an amino acid that relaxes nerve spasms and calms your uterine walls.',
+        icon: '🌼',
+        color: 'from-amber-100 to-yellow-50',
+        borderColor: 'border-amber-200'
+      },
+      {
+        id: 'ginger',
+        name: 'Warm Ginger & Lemon Infusion',
+        tagline: 'Targeted Anti-Inflammatory',
+        benefit: 'Lowers prostaglandin levels, directly soothing nausea and throbbing lower abdomen tension.',
+        icon: '🍋',
+        color: 'from-orange-100 to-amber-50',
+        borderColor: 'border-orange-200'
+      },
+      {
+        id: 'peppermint',
+        name: 'Cool Breeze Peppermint Brew',
+        tagline: 'Bloating & Headache Shield',
+        benefit: 'Natural menthol gently eases gastrointestinal cramps and lifts stubborn brain fog.',
+        icon: '🍃',
+        color: 'from-emerald-100 to-teal-50',
+        borderColor: 'border-emerald-200'
+      },
+      {
+        id: 'cocoa',
+        name: 'Dark Cocoa & Oat Milk',
+        tagline: 'Pure Endorphin Boost',
+        benefit: 'Packed with bioavailable magnesium to soothe uterine contractions and elevate mood quickly.',
+        icon: '🍫',
+        color: 'from-stone-200 to-amber-100',
+        borderColor: 'border-amber-300'
+      }
+    ];
+
+    const VOUCHERS = [
+      { id: 1, title: 'Unconditional Warm Back & Foot Rub', desc: 'No time limits, warm lavender essential oil, total relaxation.', emoji: '💆‍♀️' },
+      { id: 2, title: 'Favorite Snack Delivery', desc: 'Ice cream, cheesy comfort meal, spicy noodles, or dark chocolates—your choice!', emoji: '🍩' },
+      { id: 3, title: 'Absolute Movie & Binge Pass', desc: 'You control 100% of the screen. Zero complaints, infinite blanket sharing.', emoji: '🍿' },
+      { id: 4, title: 'Guilt-Free Sloth Pass', desc: 'All chores cancelled. Stay wrapped in bed all day long while I take care of everything.', emoji: '🦥' }
+    ];
+
+    const CUTE_IMAGES = [
+      { url: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80', caption: 'Here is an adorable golden snoozing peacefully for you 🐶' },
+      { url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80', caption: 'A tiny sleepy kitten keeping your bed extra warm 🐱' },
+      { url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=600&q=80', caption: 'Puffiest cheeks ready to cuddle whenever you want 🐰' },
+      { url: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=600&q=80', caption: 'Gentle playful spirit to bring a soft smile to your face ✨' }
+    ];
+
+    function App() {
+      // Saved name as requested
+      const [name] = useState('Tanuja');
+      
+      // Floating Hearts / Petals Canvas
+      const canvasRef = useRef(null);
+
+      // Interactive states
+      const [heatLevel, setHeatLevel] = useState(38); // degrees Celsius
+      const [isHeating, setIsHeating] = useState(false);
+      const [currentAffirmationIndex, setCurrentAffirmationIndex] = useState(0);
+      const [selectedTea, setSelectedTea] = useState(TEAS[0]);
+      const [bubbles, setBubbles] = useState(() => Array(24).fill(false));
+      const [breathPhase, setBreathPhase] = useState('Inhale deeply (4s)...');
+      const [claimedCoupons, setClaimedCoupons] = useState({});
+      const [activeTab, setActiveTab] = useState('comfort');
+
+      // Floating petals / gentle particles in background
+      useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let animationFrameId;
+
+        let width = (canvas.width = window.innerWidth);
+        let height = (canvas.height = window.innerHeight);
+
+        const handleResize = () => {
+          width = canvas.width = window.innerWidth;
+          height = canvas.height = window.innerHeight;
+        };
+        window.addEventListener('resize', handleResize);
+
+        const particles = Array.from({ length: 32 }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: Math.random() * 8 + 4,
+          speedY: Math.random() * 0.7 + 0.3,
+          speedX: (Math.random() - 0.5) * 0.5,
+          opacity: Math.random() * 0.4 + 0.2,
+          rotation: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 1.2
+        }));
+
+        const render = () => {
+          ctx.clearRect(0, 0, width, height);
+
+          particles.forEach((p) => {
+            p.y += p.speedY;
+            p.x += p.speedX;
+            p.rotation += p.rotSpeed;
+
+            if (p.y > height + 20) {
+              p.y = -20;
+              p.x = Math.random() * width;
+            }
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            ctx.fillStyle = `rgba(251, 182, 206, ${p.opacity})`;
+            ctx.beginPath();
+            // Heart or soft petal shape
+            ctx.ellipse(0, 0, p.size, p.size * 0.65, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          });
+
+          animationFrameId = requestAnimationFrame(render);
+        };
+
+        render();
+
+        return () => {
+          window.removeEventListener('resize', handleResize);
+          cancelAnimationFrame(animationFrameId);
+        };
+      }, []);
+
+      // Breathing Cycle Timer
+      useEffect(() => {
+        const phases = [
+          { text: 'Inhale gently through your nose (4s)...', duration: 4000 },
+          { text: 'Hold softly, easing your shoulders (4s)...', duration: 4000 },
+          { text: 'Exhale fully through your mouth, letting cramps fade (6s)...', duration: 6000 }
+        ];
+        let currentIdx = 0;
+        let isMounted = true;
+
+        const runBreathingCycle = () => {
+          if (!isMounted) return;
+          setBreathPhase(phases[currentIdx].text);
+          const nextDuration = phases[currentIdx].duration;
+          currentIdx = (currentIdx + 1) % phases.length;
+          setTimeout(runBreathingCycle, nextDuration);
+        };
+
+        runBreathingCycle();
+
+        return () => {
+          isMounted = false;
+        };
+      }, []);
+
+      // Heat Bottle Control
+      const heatUpBottle = () => {
+        sound.playWarmChime();
+        setIsHeating(true);
+        let current = heatLevel;
+        const target = Math.min(current + 3, 44);
+        const interval = setInterval(() => {
+          current += 0.5;
+          setHeatLevel(Math.round(current * 10) / 10);
+          if (current >= target) {
+            clearInterval(interval);
+            setIsHeating(false);
+          }
+        }, 120);
+      };
+
+      const resetBottle = () => {
+        sound.playBubblePop();
+        setHeatLevel(37);
+      };
+
+      // Pop Bubble
+      const handleBubblePop = (index) => {
+        if (!bubbles[index]) {
+          sound.playBubblePop();
+          const next = [...bubbles];
+          next[index] = true;
+          setBubbles(next);
+        }
+      };
+
+      const resetBubbles = () => {
+        sound.playWarmChime();
+        setBubbles(Array(24).fill(false));
+      };
+
+      const claimVoucher = (id) => {
+        sound.playWarmChime();
+        setClaimedCoupons((prev) => ({
+          ...prev,
+          [id]: true
+        }));
+      };
+
+      const nextAffirmation = () => {
+        sound.playWarmChime();
+        setCurrentAffirmationIndex((prev) => (prev + 1) % AFFIRMATIONS.length);
+      };
+
+      return (
+        <div className="relative min-h-screen text-slate-700 bg-gradient-to-b from-rose-50/70 via-pink-50/40 to-amber-50/50 pb-20 overflow-x-hidden">
+          {/* Subtle Canvas for floating petals */}
+          <canvas
+            ref={canvasRef}
+            className="fixed inset-0 pointer-events-none z-0"
+          />
+
+          {/* Top Decorative Banner */}
+          <header className="relative z-10 pt-10 pb-6 px-4 max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-100/80 border border-rose-200 text-rose-700 text-sm font-semibold tracking-wide shadow-sm mb-4">
+              <span>🌸</span> Cozy Sanctuary for You
+            </div>
+            <h1 className="text-4xl md:text-5xl font-pacifico text-rose-600 mb-3 drop-shadow-sm">
+              Take It Easy, {name} ❤️
+            </h1>
+            <p className="text-base md:text-lg text-slate-600 max-w-xl mx-auto font-medium">
+              A private digital hug built just for you. Snuggle under your warmest blanket, grab some warm tea, and let your body fully relax today.
+            </p>
+
+            {/* Navigation Pills */}
+            <div className="flex flex-wrap items-center justify-center gap-2.5 mt-8">
+              {[
+                { id: 'comfort', label: '🔥 Warm Care', icon: '✨' },
+                { id: 'tea', label: '🫖 Soothing Teas', icon: '🍃' },
+                { id: 'jar', label: '💌 Love Jar', icon: '💖' },
+                { id: 'distract', label: '🫧 De-Stress Suite', icon: '🧸' },
+                { id: 'coupons', label: '🎟️ Care Coupons', icon: '🎀' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    sound.playBubblePop();
+                    setActiveTab(tab.id);
+                  }}
+                  className={`px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 shadow-sm flex items-center gap-2 ${
+                    activeTab === tab.id
+                      ? 'bg-rose-500 text-white shadow-rose-200 shadow-md scale-105'
+                      : 'bg-white/80 hover:bg-white text-slate-600 border border-rose-100 hover:border-rose-300'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </header>
+
+          {/* Main Content Area */}
+          <main className="relative z-10 max-w-4xl mx-auto px-4 mt-4">
+            
+            {/* TAB 1: WARMTH & BOTTLE SIMULATOR */}
+            {activeTab === 'comfort' && (
+              <div className="grid md:grid-cols-2 gap-6 items-stretch">
+                {/* Hot Water Bottle Card */}
+                <div className="bg-white/85 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-rose-100/50 border border-rose-100 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-xs font-bold uppercase tracking-wider text-rose-400 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+                        Virtual Hot Water Bottle
+                      </span>
+                      <span className="text-2xl font-bold text-rose-500">
+                        {heatLevel}°C
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl font-bold text-slate-800 mb-2">
+                      Soothing Pelvic Heat Pack
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-6">
+                      Applying warmth relaxes uterine muscle contractions and stimulates blood flow to instantly dull aching cramps.
+                    </p>
+
+                    {/* Bottle Visual */}
+                    <div className="relative mx-auto w-44 h-56 flex flex-col items-center justify-center my-4">
+                      {/* Bottle Cap */}
+                      <div className="w-12 h-6 bg-rose-300 rounded-t-lg shadow-inner border border-rose-400"></div>
+                      <div className="w-8 h-3 bg-rose-400"></div>
+                      
+                      {/* Bottle Body */}
+                      <div
+                        className={`w-40 h-44 rounded-3xl relative overflow-hidden flex flex-col items-center justify-center transition-all duration-700 shadow-lg ${
+                          heatLevel > 40
+                            ? 'bg-gradient-to-b from-rose-500 via-rose-400 to-amber-500 shadow-rose-300'
+                            : 'bg-gradient-to-b from-pink-400 via-rose-300 to-pink-300 shadow-pink-200'
+                        } ${isHeating ? 'scale-105 animate-pulse-soft' : ''}`}
+                      >
+                        {/* Heat Waves simulation */}
+                        <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle,white_10%,transparent_70%)]"></div>
+                        <span className="text-4xl mb-1 filter drop-shadow">🔥</span>
+                        <span className="text-white font-bold text-sm tracking-wide">
+                          {heatLevel > 41 ? 'Perfect Warmth' : heatLevel > 38 ? 'Pleasantly Warm' : 'Mild Warmth'}
+                        </span>
+                        <span className="text-white/80 text-xs mt-1">Ready for tummy</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-4">
+                    <button
+                      onClick={heatUpBottle}
+                      disabled={isHeating || heatLevel >= 44}
+                      className="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold py-3 px-4 rounded-2xl shadow-md transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {isHeating ? 'Heating Up gently...' : 'Add More Warmth (+)'}
+                    </button>
+                    <button
+                      onClick={resetBottle}
+                      title="Reset Temperature"
+                      className="p-3 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-2xl border border-rose-200 transition active:scale-95"
+                    >
+                      🔄
+                    </button>
+                  </div>
+                </div>
+
+                {/* Cozy Checklist for Tanuja */}
+                <div className="bg-white/85 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-rose-100/50 border border-rose-100 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-pink-400 bg-pink-50 px-3 py-1 rounded-full border border-pink-200">
+                      Tanuja's Care Ritual
+                    </span>
+                    <h3 className="text-xl font-bold text-slate-800 mt-3 mb-2">
+                      Checklist For Today
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-4">
+                      Tap each one as you do it. Zero pressure, take all the time you need:
+                    </p>
+
+                    <div className="space-y-3">
+                      {[
+                        { title: 'Sip a warm glass of water', icon: '💧' },
+                        { title: 'Put on extra fuzzy, warm socks', icon: '🧦' },
+                        { title: 'Place a pillow right under your knees', icon: '🛋️' },
+                        { title: 'Take a slow, deep breath and drop your shoulders', icon: '🌿' },
+                        { title: 'Say no to anything that demands your energy today', icon: '🛑' }
+                      ].map((item, idx) => (
+                        <label
+                          key={idx}
+                          className="flex items-center gap-3 p-3 bg-pink-50/50 hover:bg-pink-100/60 rounded-2xl border border-pink-100/80 cursor-pointer transition"
+                        >
+                          <input
+                            type="checkbox"
+                            onChange={() => sound.playBubblePop()}
+                            className="w-5 h-5 accent-rose-500 rounded cursor-pointer"
+                          />
+                          <span className="text-lg">{item.icon}</span>
+                          <span className="text-sm font-semibold text-slate-700">{item.title}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-5 p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center gap-3">
+                    <span className="text-2xl">🍯</span>
+                    <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                      <strong>Reminder:</strong> It is completely okay if you don't feel like talking or smiling right now. Your peace comes first.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: SOOTHING HERBAL TEAS */}
+            {activeTab === 'tea' && (
+              <div className="space-y-6">
+                <div className="bg-white/85 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-rose-100/50 border border-rose-100 text-center">
+                  <span className="text-xs font-bold uppercase tracking-wider text-rose-400 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+                    Cramp Relief Brews
+                  </span>
+                  <h3 className="text-2xl font-bold text-slate-800 mt-2 mb-2">
+                    Pick a Warm Mug for Today, {name}
+                  </h3>
+                  <p className="text-sm text-slate-500 max-w-lg mx-auto">
+                    Select your preferred infusion below to see how it naturally helps your body unwind:
+                  </p>
+
+                  <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    {TEAS.map((tea) => (
+                      <button
+                        key={tea.id}
+                        onClick={() => {
+                          sound.playWarmChime();
+                          setSelectedTea(tea);
+                        }}
+                        className={`p-4 rounded-2xl text-left border transition-all duration-300 flex flex-col justify-between ${
+                          selectedTea.id === tea.id
+                            ? 'bg-white border-rose-400 shadow-md ring-2 ring-rose-300 scale-102'
+                            : 'bg-white/60 hover:bg-white border-slate-200/80'
+                        }`}
+                      >
+                        <div className="text-3xl mb-2">{tea.icon}</div>
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-sm">{tea.name}</h4>
+                          <span className="text-[11px] font-semibold text-rose-500 uppercase tracking-tight block mt-1">
+                            {tea.tagline}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Brew Details Display */}
+                  <div className={`mt-8 p-6 rounded-3xl bg-gradient-to-r ${selectedTea.color} border ${selectedTea.borderColor} text-left transition-all duration-500 flex flex-col md:flex-row items-center gap-6 shadow-sm`}>
+                    <div className="w-20 h-20 rounded-full bg-white/90 shadow-md flex items-center justify-center text-4xl shrink-0">
+                      {selectedTea.icon}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/70 text-slate-700">
+                          {selectedTea.tagline}
+                        </span>
+                      </div>
+                      <h4 className="text-xl font-bold text-slate-800 mb-1">
+                        {selectedTea.name}
+                      </h4>
+                      <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                        {selectedTea.benefit}
+                      </p>
+                      <p className="text-xs text-rose-600 font-bold mt-2">
+                        ✨ Best paired with honey and your favorite cozy socks.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: LOVE & AFFIRMATION JAR */}
+            {activeTab === 'jar' && (
+              <div className="bg-white/85 backdrop-blur-md rounded-3xl p-8 shadow-xl shadow-rose-100/50 border border-rose-100 text-center max-w-2xl mx-auto">
+                <span className="text-xs font-bold uppercase tracking-wider text-pink-500 bg-pink-50 px-3 py-1 rounded-full border border-pink-200">
+                  Daily Affection Dispenser
+                </span>
+                <h3 className="text-2xl font-bold text-slate-800 mt-3 mb-2">
+                  The "You Are Loved" Jar
+                </h3>
+                <p className="text-sm text-slate-500 mb-8">
+                  Whenever the cramps or moody blues feel heavy, click to pull a gentle note from the jar.
+                </p>
+
+                {/* Jar Visual */}
+                <div
+                  onClick={nextAffirmation}
+                  className="cursor-pointer group relative mx-auto w-48 h-56 bg-gradient-to-b from-white/90 to-pink-50/70 border-2 border-pink-200 rounded-b-3xl rounded-t-xl p-4 flex flex-col items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95"
+                >
+                  <div className="absolute -top-3 w-32 h-4 bg-rose-300 rounded-full shadow-md border border-rose-400"></div>
+                  <div className="text-5xl group-hover:scale-110 transition-transform">💌</div>
+                  <span className="text-xs font-bold text-rose-500 mt-2 bg-pink-100/80 px-2 py-1 rounded-lg">
+                    Tap to open note
+                  </span>
+                </div>
+
+                {/* Note Unfolded */}
+                <div className="mt-8 p-6 bg-gradient-to-r from-rose-50 via-pink-50 to-amber-50 rounded-2xl border border-rose-200/80 shadow-sm relative">
+                  <span className="text-3xl text-rose-300 absolute -top-3 left-4 font-serif">“</span>
+                  <p className="text-base md:text-lg font-semibold text-slate-700 italic px-4 leading-relaxed">
+                    {AFFIRMATIONS[currentAffirmationIndex]}
+                  </p>
+                  <span className="text-3xl text-rose-300 absolute -bottom-5 right-4 font-serif">”</span>
+                </div>
+
+                <button
+                  onClick={nextAffirmation}
+                  className="mt-6 px-6 py-2.5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm shadow-md transition-all active:scale-95"
+                >
+                  Draw Another Note ✨
+                </button>
+              </div>
+            )}
+
+            {/* TAB 4: DE-STRESS & DISTRACTION SUITE */}
+            {activeTab === 'distract' && (
+              <div className="space-y-6">
+                {/* Breathing Exercise */}
+                <div className="bg-white/85 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-rose-100/50 border border-rose-100 text-center">
+                  <span className="text-xs font-bold uppercase tracking-wider text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
+                    Nervous System Softener
+                  </span>
+                  <h3 className="text-xl font-bold text-slate-800 mt-2 mb-2">
+                    Gentle Rhythm Breathing
+                  </h3>
+                  <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
+                    Deep diaphragmatic breathing naturally slackens pelvic muscle tightness. Match your rhythm with the glowing orb:
+                  </p>
+
+                  <div className="relative w-44 h-44 mx-auto flex items-center justify-center my-6">
+                    <div className="absolute inset-0 bg-pink-200/50 rounded-full animate-ping opacity-25"></div>
+                    <div className="w-36 h-36 rounded-full bg-gradient-to-tr from-rose-300 to-pink-200 flex items-center justify-center text-white font-bold text-sm shadow-inner transition-all duration-1000 animate-pulse-soft border-4 border-white">
+                      Breathe with me
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-rose-50/80 rounded-2xl border border-rose-200 max-w-sm mx-auto text-rose-800 font-bold text-sm">
+                    {breathPhase}
+                  </div>
+                </div>
+
+                {/* Tactile Virtual Bubble Wrap */}
+                <div className="bg-white/85 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-rose-100/50 border border-rose-100 text-center">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold uppercase tracking-wider text-pink-500 bg-pink-50 px-3 py-1 rounded-full border border-pink-200">
+                      Stress Relief Toy
+                    </span>
+                    <button
+                      onClick={resetBubbles}
+                      className="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200"
+                    >
+                      Reset All Bubbles 🫧
+                    </button>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-slate-800 mb-1">
+                    Pop the Tension Away
+                  </h3>
+                  <p className="text-xs text-slate-500 mb-4">
+                    Tap any bubble to hear a satisfying click. (Sound must be on!)
+                  </p>
+
+                  <div className="grid grid-cols-6 sm:grid-cols-8 gap-2.5 max-w-md mx-auto p-4 bg-pink-50/40 rounded-2xl border border-pink-100">
+                    {bubbles.map((popped, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleBubblePop(idx)}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 font-bold text-xs ${
+                          popped
+                            ? 'bg-rose-200/50 border border-transparent shadow-inner scale-90 text-rose-400'
+                            : 'bg-white border-2 border-rose-200 shadow-sm hover:scale-105 active:scale-95 text-pink-300'
+                        }`}
+                      >
+                        {popped ? '•' : '○'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Cute Mood Boost Gallery */}
+                <div className="bg-white/85 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-rose-100/50 border border-rose-100">
+                  <h3 className="text-lg font-bold text-slate-800 mb-3 text-center">
+                    Instant Serotonin Gallery ✨
+                  </h3>
+                  <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    {CUTE_IMAGES.map((img, index) => (
+                      <div key={index} className="rounded-2xl overflow-hidden bg-pink-50 border border-pink-100 shadow-sm group">
+                        <img
+                          src={img.url}
+                          alt="Cute companion"
+                          className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                        <p className="p-2.5 text-xs text-slate-600 font-medium leading-relaxed">
+                          {img.caption}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: CARE COUPONS */}
+            {activeTab === 'coupons' && (
+              <div className="bg-white/85 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-rose-100/50 border border-rose-100">
+                <div className="text-center max-w-md mx-auto mb-6">
+                  <span className="text-xs font-bold uppercase tracking-wider text-rose-500 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+                    Redeemable Anytime
+                  </span>
+                  <h3 className="text-2xl font-bold text-slate-800 mt-2 mb-2">
+                    Tanuja's Pamper Vouchers
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    Tap any voucher below to redeem it right now. These never expire and carry zero conditions!
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  {VOUCHERS.map((v) => {
+                    const isClaimed = claimedCoupons[v.id];
+                    return (
+                      <div
+                        key={v.id}
+                        className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between relative overflow-hidden ${
+                          isClaimed
+                            ? 'bg-rose-50/70 border-rose-300 opacity-90'
+                            : 'bg-white hover:border-rose-300 border-slate-200 shadow-sm hover:shadow'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-3xl">{v.emoji}</span>
+                            {isClaimed && (
+                              <span className="text-[11px] font-bold text-rose-600 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-full">
+                                ✓ Claimed by Tanuja
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="text-base font-bold text-slate-800 mb-1">
+                            {v.title}
+                          </h4>
+                          <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                            {v.desc}
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => claimVoucher(v.id)}
+                          disabled={isClaimed}
+                          className={`mt-4 py-2 px-4 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                            isClaimed
+                              ? 'bg-rose-200/60 text-rose-700 cursor-default'
+                              : 'bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-sm'
+                          }`}
+                        >
+                          {isClaimed ? 'Redeemed & Registered ❤️' : 'Claim Voucher 🎀'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* Footer Note */}
+          <footer className="relative z-10 text-center mt-12 text-xs text-slate-400 font-medium">
+            Handcrafted with endless care, patience, and love for Tanuja 🌷
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
